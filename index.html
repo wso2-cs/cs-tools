@@ -22,6 +22,7 @@
                         <a class="nav-link active" id="v-pills-base64-tab" data-toggle="pill" href="#base64" role="tab" aria-controls="base64" aria-selected="true">Base64 Encode/Decode</a>
                         <a class="nav-link" id="v-pills-jwt-tab" data-toggle="pill" href="#jwt" role="tab" aria-controls="jwt" aria-selected="false">JWT Decode</a>
                         <a class="nav-link" id="v-pills-url-tab" data-toggle="pill" href="#url" role="tab" aria-controls="url" aria-selected="false">URL Encode/Decode</a>
+                        <a class="nav-link" id="v-pills-html-tab" data-toggle="pill" href="#html" role="tab" aria-controls="html" aria-selected="false">HTML Encode/Decode</a>
                         <a class="nav-link" id="v-pills-json-tab" data-toggle="pill" href="#json" role="tab" aria-controls="json" aria-selected="false">JSON Formatter</a>
                         <a class="nav-link" id="v-pills-xml-tab" data-toggle="pill" href="#xml" role="tab" aria-controls="xml" aria-selected="false">XML Formatter</a>
                     </div>
@@ -260,6 +261,50 @@
                         <div class="col-md-12">
                             <pre id="preXmlOutput">
                                 <code id="preXmlOutputCode" class="language-xml">
+</code>
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="html" role="tabpanel" aria-labelledby="v-pills-html-tab">
+                <div class="container-fluid">
+                    <div>
+                        <div class="col-md-12" style="text-align: center;">
+                            <h1>HTML Encode/Decode</h1>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            Input
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <textarea id="textAreaHtmlInput" style="width: 100%; height: fit-content;"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-1">
+                            <button type="button" class="btn btn-secondary" id="btnHtmlEncode"> Encode </button>
+                        </div>
+                        <div class="col-md-10"></div>
+                        <div class="col-md-1" >
+                            <button type="button" class="btn btn-secondary" id="btnHtmlDecode" style="float: right;"> Decode </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        &nbsp;
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            Output
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <pre id="preHtmlOutput">
+                                <code id="preHtmlOutputCode">
 </code>
                             </pre>
                         </div>

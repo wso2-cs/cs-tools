@@ -6,6 +6,8 @@ $(document).ready(function(){
     $('#btnUrlDecode').click(function (){urlDecode();});
     $('#btnJsonFormat').click(function (){jsonFormat();});
     $('#btnXmlFormat').click(function (){xmlFormat();});
+    $('#btnHtmlEncode').click(function (){htmlEncode();});
+    $('#btnHtmlDecode').click(function (){htmlDecode();});
 });
 
 function base64encode(){
@@ -111,6 +113,26 @@ function xmlFormat(sourceXml){
         showError("Error: Invalid XML Payload");
     }
 };
+
+function htmlEncode(){
+    var text = get('textAreaHtmlInput').value;
+    var encoded = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    get('preHtmlOutputCode').innerText = encoded;
+}
+
+function htmlDecode(){
+    var text = get('textAreaHtmlInput').value;
+    // Uses the browser's HTML parser for decoding entities, which may handle certain edge cases differently than manual replacements.
+    var parser = new DOMParser();
+    var dom = parser.parseFromString(text, 'text/html');
+    var decoded = dom.documentElement.textContent;
+    get('preHtmlOutputCode').innerText = decoded;
+}
 
 function get(id){
     return document.getElementById(id);
