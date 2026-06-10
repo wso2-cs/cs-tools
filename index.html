@@ -18,6 +18,11 @@
   <img src="img/logo.png" alt="WSO2" height="32" />
   <h1>Support Utils</h1>
   <span class="spacer"></span>
+  <div class="search-wrap">
+    <span class="material-symbols-outlined search-icon">search</span>
+    <input id="tool-search" type="text" class="search-input" placeholder="Search tools…" autocomplete="off" />
+    <div id="search-results" class="search-results"></div>
+  </div>
   <button id="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
 </header>
 
@@ -28,7 +33,7 @@
         <span class="material-symbols-outlined cat-icon">sync_alt</span> Encode / Decode <span class="cat-arrow">▾</span>
       </button>
       <div class="cat-items">
-        <button class="active" data-tab="b64enc">Base64 Encode</button>
+        <button data-tab="b64enc">Base64 Encode</button>
         <button data-tab="b64dec">Base64 Decode</button>
         <button data-tab="urlenc">URL Encode</button>
         <button data-tab="urldec">URL Decode</button>
@@ -38,6 +43,8 @@
         <button data-tab="b64urldec">B64 URL Decode</button>
         <button data-tab="jwt">JWT Decode</button>
         <button data-tab="saml">SAML Decode</button>
+        <button data-tab="pem">PEM Decoder</button>
+        <button data-tab="csrdec">CSR Decoder</button>
       </div>
     </div>
 
@@ -48,6 +55,7 @@
       <div class="cat-items">
         <button data-tab="jsonbeautify">JSON Beautify</button>
         <button data-tab="xmlbeautify">XML Beautify</button>
+        <button data-tab="yaml">YAML Linter</button>
       </div>
     </div>
 
@@ -59,6 +67,7 @@
         <button data-tab="hash">Hash</button>
         <button data-tab="pwgen">Password</button>
         <button data-tab="uuid">UUID</button>
+        <button data-tab="csr">CSR Generator</button>
       </div>
     </div>
 
@@ -72,14 +81,186 @@
         <button data-tab="timestamp">Timestamp</button>
         <button data-tab="httpstatus">HTTP Status</button>
         <button data-tab="cors">CORS Builder</button>
+        <button data-tab="timezones">Time Converter</button>
+        <button data-tab="keystore">Keystore Viewer</button>
+        <button data-tab="subnet">IP / Subnet Calculator</button>
       </div>
     </div>
   </nav>
 
   <div class="content">
 
+    <!-- ═══ Homepage ═══ -->
+    <div class="tab-panel active" id="tab-home">
+      <div class="home-hero">
+        <h2 class="home-title">Support Utils</h2>
+        <p class="home-subtitle">Browser-based utilities for WSO2 Customer Success engineers.</p>
+        <p class="home-subtitle">All processing happens locally, no data leaves your browser.</p>
+      </div>
+
+      <div class="home-category">
+        <h3 class="home-cat-title"><span class="material-symbols-outlined">sync_alt</span> Encode / Decode</h3>
+        <div class="home-grid">
+          <button class="home-card" data-tab="b64enc">
+            <span class="material-symbols-outlined home-card-icon">lock</span>
+            <span class="home-card-name">Base64 Encode</span>
+            <span class="home-card-desc">Encode text to Base64</span>
+          </button>
+          <button class="home-card" data-tab="b64dec">
+            <span class="material-symbols-outlined home-card-icon">lock_open</span>
+            <span class="home-card-name">Base64 Decode</span>
+            <span class="home-card-desc">Decode Base64 to text</span>
+          </button>
+          <button class="home-card" data-tab="urlenc">
+            <span class="material-symbols-outlined home-card-icon">link</span>
+            <span class="home-card-name">URL Encode</span>
+            <span class="home-card-desc">Percent-encode URLs and strings</span>
+          </button>
+          <button class="home-card" data-tab="urldec">
+            <span class="material-symbols-outlined home-card-icon">link_off</span>
+            <span class="home-card-name">URL Decode</span>
+            <span class="home-card-desc">Decode percent-encoded URLs</span>
+          </button>
+          <button class="home-card" data-tab="htmlenc">
+            <span class="material-symbols-outlined home-card-icon">code</span>
+            <span class="home-card-name">HTML Encode</span>
+            <span class="home-card-desc">Escape HTML special characters</span>
+          </button>
+          <button class="home-card" data-tab="htmldec">
+            <span class="material-symbols-outlined home-card-icon">code_off</span>
+            <span class="home-card-name">HTML Decode</span>
+            <span class="home-card-desc">Unescape HTML entities</span>
+          </button>
+          <button class="home-card" data-tab="b64urlenc">
+            <span class="material-symbols-outlined home-card-icon">enhanced_encryption</span>
+            <span class="home-card-name">B64 URL Encode</span>
+            <span class="home-card-desc">URL-safe Base64 encoding</span>
+          </button>
+          <button class="home-card" data-tab="b64urldec">
+            <span class="material-symbols-outlined home-card-icon">no_encryption</span>
+            <span class="home-card-name">B64 URL Decode</span>
+            <span class="home-card-desc">URL-safe Base64 decoding</span>
+          </button>
+          <button class="home-card" data-tab="jwt">
+            <span class="material-symbols-outlined home-card-icon">token</span>
+            <span class="home-card-name">JWT Decode</span>
+            <span class="home-card-desc">Decode and inspect JWT tokens</span>
+          </button>
+          <button class="home-card" data-tab="saml">
+            <span class="material-symbols-outlined home-card-icon">shield</span>
+            <span class="home-card-name">SAML Decode</span>
+            <span class="home-card-desc">Decode SAML requests and responses</span>
+          </button>
+          <button class="home-card" data-tab="pem">
+            <span class="material-symbols-outlined home-card-icon">verified_user</span>
+            <span class="home-card-name">PEM Decoder</span>
+            <span class="home-card-desc">Decode X.509 PEM certificates</span>
+          </button>
+          <button class="home-card" data-tab="csrdec">
+            <span class="material-symbols-outlined home-card-icon">fact_check</span>
+            <span class="home-card-name">CSR Decoder</span>
+            <span class="home-card-desc">Decode and inspect CSR contents</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="home-category">
+        <h3 class="home-cat-title"><span class="material-symbols-outlined">data_object</span> Format</h3>
+        <div class="home-grid">
+          <button class="home-card" data-tab="jsonbeautify">
+            <span class="material-symbols-outlined home-card-icon">data_object</span>
+            <span class="home-card-name">JSON Beautify</span>
+            <span class="home-card-desc">Format and validate JSON</span>
+          </button>
+          <button class="home-card" data-tab="xmlbeautify">
+            <span class="material-symbols-outlined home-card-icon">code_blocks</span>
+            <span class="home-card-name">XML Beautify</span>
+            <span class="home-card-desc">Format and indent XML</span>
+          </button>
+          <button class="home-card" data-tab="yaml">
+            <span class="material-symbols-outlined home-card-icon">description</span>
+            <span class="home-card-name">YAML Linter</span>
+            <span class="home-card-desc">Lint, format, and convert YAML</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="home-category">
+        <h3 class="home-cat-title"><span class="material-symbols-outlined">add_circle</span> Generate</h3>
+        <div class="home-grid">
+          <button class="home-card" data-tab="hash">
+            <span class="material-symbols-outlined home-card-icon">fingerprint</span>
+            <span class="home-card-name">Hash Generator</span>
+            <span class="home-card-desc">Generate SHA and MD5 hashes</span>
+          </button>
+          <button class="home-card" data-tab="pwgen">
+            <span class="material-symbols-outlined home-card-icon">password</span>
+            <span class="home-card-name">Password Generator</span>
+            <span class="home-card-desc">Generate secure random passwords</span>
+          </button>
+          <button class="home-card" data-tab="uuid">
+            <span class="material-symbols-outlined home-card-icon">numbers</span>
+            <span class="home-card-name">UUID Generator</span>
+            <span class="home-card-desc">Generate v4 UUIDs</span>
+          </button>
+          <button class="home-card" data-tab="csr">
+            <span class="material-symbols-outlined home-card-icon">award_star</span>
+            <span class="home-card-name">CSR Generator</span>
+            <span class="home-card-desc">Generate certificate signing requests</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="home-category">
+        <h3 class="home-cat-title"><span class="material-symbols-outlined">handyman</span> Utilities</h3>
+        <div class="home-grid">
+          <button class="home-card" data-tab="regex">
+            <span class="material-symbols-outlined home-card-icon">manage_search</span>
+            <span class="home-card-name">Regex Tester</span>
+            <span class="home-card-desc">Test regular expressions live</span>
+          </button>
+          <button class="home-card" data-tab="diff">
+            <span class="material-symbols-outlined home-card-icon">compare</span>
+            <span class="home-card-name">Diff Viewer</span>
+            <span class="home-card-desc">Compare two text blocks</span>
+          </button>
+          <button class="home-card" data-tab="timestamp">
+            <span class="material-symbols-outlined home-card-icon">schedule</span>
+            <span class="home-card-name">Timestamp Converter</span>
+            <span class="home-card-desc">Convert Unix timestamps and dates</span>
+          </button>
+          <button class="home-card" data-tab="httpstatus">
+            <span class="material-symbols-outlined home-card-icon">http</span>
+            <span class="home-card-name">HTTP Status Codes</span>
+            <span class="home-card-desc">HTTP status code reference</span>
+          </button>
+          <button class="home-card" data-tab="cors">
+            <span class="material-symbols-outlined home-card-icon">swap_horiz</span>
+            <span class="home-card-name">CORS Builder</span>
+            <span class="home-card-desc">Generate CORS response headers</span>
+          </button>
+          <button class="home-card" data-tab="timezones">
+            <span class="material-symbols-outlined home-card-icon">public</span>
+            <span class="home-card-name">Time Zone Converter</span>
+            <span class="home-card-desc">Compare times across world zones</span>
+          </button>
+          <button class="home-card" data-tab="keystore">
+            <span class="material-symbols-outlined home-card-icon">key</span>
+            <span class="home-card-name">Keystore Viewer</span>
+            <span class="home-card-desc">Inspect JKS, PKCS#12 and PEM files</span>
+          </button>
+          <button class="home-card" data-tab="subnet">
+            <span class="material-symbols-outlined home-card-icon">lan</span>
+            <span class="home-card-name">IP / Subnet Calculator</span>
+            <span class="home-card-desc">Calculate subnets, ranges and masks</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
     <!-- ═══ Base64 Encode ═══ -->
-    <div class="tab-panel active" id="tab-b64enc">
+    <div class="tab-panel" id="tab-b64enc">
       <div class="panel-title">
         <span class="icon">B</span> Base64 Encode
       </div>
@@ -329,6 +510,40 @@
       </div>
     </div>
 
+    <!-- ═══ YAML Linter ═══ -->
+    <div class="tab-panel" id="tab-yaml">
+      <div class="panel-title">
+        <span class="icon">Y</span> YAML Linter / Formatter
+      </div>
+      <div class="io-grid">
+        <div class="io-box">
+          <label>Input (YAML or JSON)</label>
+          <textarea id="yaml-in" placeholder="Paste YAML or JSON here…"></textarea>
+        </div>
+        <div class="io-box">
+          <label>Output</label>
+          <textarea id="yaml-out" readonly placeholder="Formatted output will appear here…"></textarea>
+        </div>
+      </div>
+      <div class="err-msg" id="yaml-err"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="yamlBeautify()">⚡ Beautify</button>
+        <button class="btn btn-secondary" onclick="yamlValidate()">Validate</button>
+        <button class="btn btn-secondary" onclick="yamlToJson()">YAML → JSON</button>
+        <button class="btn btn-secondary" onclick="jsonToYaml()">JSON → YAML</button>
+        <button class="btn btn-secondary" onclick="copyText('yaml-out')">Copy Output</button>
+        <label style="font-size:0.8rem;color:var(--muted);display:flex;align-items:center;gap:6px;">
+          Indent
+          <select id="yaml-indent" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:4px 8px;font-size:0.8rem;cursor:pointer;">
+            <option value="2">2 spaces</option>
+            <option value="4">4 spaces</option>
+          </select>
+        </label>
+        <span class="spacer"></span>
+        <button class="btn btn-danger" onclick="clearIO('yaml-in','yaml-out','yaml-err')">Clear</button>
+      </div>
+    </div>
+
     <!-- ═══ SAML Decode ═══ -->
     <div class="tab-panel" id="tab-saml">
       <div class="panel-title">
@@ -513,6 +728,100 @@
       <div id="uuid-results" style="display:none;margin-top:16px;flex-direction:column;gap:6px;"></div>
     </div>
 
+    <!-- ═══ CSR Generator ═══ -->
+    <div class="tab-panel" id="tab-csr">
+      <div class="panel-title">
+        <span class="icon">📜</span> CSR Generator
+      </div>
+      <div class="csr-form">
+        <div class="csr-field">
+          <label class="csr-label">Common Name <span class="csr-required">*</span></label>
+          <input id="csr-cn" type="text" class="text-input" placeholder="e.g. www.example.com" />
+        </div>
+        <div class="csr-field">
+          <label class="csr-label">Organization</label>
+          <input id="csr-o" type="text" class="text-input" placeholder="e.g. Acme Inc." />
+        </div>
+        <div class="csr-field">
+          <label class="csr-label">Department</label>
+          <input id="csr-ou" type="text" class="text-input" placeholder="e.g. Engineering" />
+        </div>
+        <div class="csr-pair">
+          <div class="csr-field">
+            <label class="csr-label">City</label>
+            <input id="csr-l" type="text" class="text-input" placeholder="e.g. San Francisco" />
+          </div>
+          <div class="csr-field">
+            <label class="csr-label">State / Province</label>
+            <input id="csr-st" type="text" class="text-input" placeholder="e.g. California" />
+          </div>
+        </div>
+        <div class="csr-pair">
+          <div class="csr-field">
+            <label class="csr-label">Country</label>
+            <input id="csr-c" type="text" class="text-input" placeholder="2-letter code, e.g. US" maxlength="2" style="text-transform:uppercase;" />
+          </div>
+          <div class="csr-field">
+            <label class="csr-label">Email</label>
+            <input id="csr-email" type="email" class="text-input" placeholder="e.g. admin@example.com" />
+          </div>
+        </div>
+        <div class="csr-field">
+          <label class="csr-label">Subject Alternative Names</label>
+          <input id="csr-sans" type="text" class="text-input" placeholder="Comma-separated: *.example.com, api.example.com, 10.0.0.1" />
+          <span class="csr-hint">DNS names and IP addresses, comma-separated</span>
+        </div>
+        <div class="csr-pair">
+          <div class="csr-field">
+            <label class="csr-label">Key Size</label>
+            <select id="csr-algo" class="text-input">
+              <option value="RSA-2048">RSA 2048-bit</option>
+              <option value="RSA-4096">RSA 4096-bit</option>
+              <option value="EC-P256">ECDSA P-256</option>
+              <option value="EC-P384">ECDSA P-384</option>
+            </select>
+          </div>
+          <div class="csr-field">
+            <label class="csr-label">Signature Algorithm</label>
+            <select id="csr-sig" class="text-input">
+              <option value="SHA-256">SHA-256</option>
+              <option value="SHA-384">SHA-384</option>
+              <option value="SHA-512">SHA-512</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="err-msg" id="csr-err"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="csrGenerate()">⚡ Generate CSR</button>
+        <span class="spacer"></span>
+        <button class="btn btn-danger" onclick="csrClear()">Clear</button>
+      </div>
+      <div id="csr-results" style="display:none;margin-top:16px;flex-direction:column;gap:12px;">
+        <div class="csr-output-box">
+          <div class="csr-output-header">
+            <label>CSR (PEM)</label>
+            <div class="csr-output-actions">
+              <button class="btn btn-secondary" onclick="csrDownload('csr')">Download .csr</button>
+              <button class="btn btn-secondary" onclick="csrCopyCSR()">Copy</button>
+            </div>
+          </div>
+          <textarea id="csr-out" readonly></textarea>
+        </div>
+        <div class="csr-output-box">
+          <div class="csr-output-header">
+            <label>Private Key (PEM)</label>
+            <div class="csr-output-actions">
+              <button class="btn btn-secondary" onclick="csrDownload('key')">Download .key</button>
+              <button class="btn btn-secondary" onclick="csrCopyKey()">Copy</button>
+            </div>
+          </div>
+          <textarea id="csr-key-out" readonly></textarea>
+        </div>
+        <div class="csr-warning">Your private key is generated entirely in your browser and never transmitted anywhere. Keep it secure.</div>
+      </div>
+    </div>
+
     <!-- ═══ Base64 URL Encode ═══ -->
     <div class="tab-panel" id="tab-b64urlenc">
       <div class="panel-title">
@@ -622,6 +931,153 @@
         </div>
         <div class="btn-row">
           <button class="btn btn-secondary" onclick="copyText('cors-result')">Copy Headers</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PEM / Certificate Decoder ═══ -->
+    <div class="tab-panel" id="tab-pem">
+      <div class="panel-title">
+        <span class="icon">🔒</span> PEM / Certificate Decoder
+      </div>
+      <div class="io-box">
+        <label>Input (PEM Certificate)</label>
+        <textarea id="pem-in" placeholder="Paste PEM certificate (-----BEGIN CERTIFICATE-----) …" style="height:180px;"></textarea>
+      </div>
+      <div class="err-msg" id="pem-err"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="pemDecode()">⚡ Decode</button>
+        <span class="spacer"></span>
+        <button class="btn btn-danger" onclick="clearPem()">Clear</button>
+      </div>
+      <div id="pem-results" style="display:none;margin-top:16px;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <!-- ═══ Time Converter ═══ -->
+    <div class="tab-panel" id="tab-timezones">
+      <div class="panel-title">
+        <span class="icon">🌍</span> Time Zone Converter
+      </div>
+
+      <!-- Hero clocks: IST & BRT -->
+      <div class="tz-hero">
+        <div class="tz-hero-card">
+          <div class="tz-hero-label">IST — India Standard Time</div>
+          <div class="tz-hero-time" id="tz-hero-ist">--:--:--</div>
+          <div class="tz-hero-date" id="tz-hero-ist-date"></div>
+          <div class="tz-hero-offset">UTC +05:30</div>
+        </div>
+        <div class="tz-hero-card">
+          <div class="tz-hero-label">BRT — Brasília Time</div>
+          <div class="tz-hero-time" id="tz-hero-brt">--:--:--</div>
+          <div class="tz-hero-date" id="tz-hero-brt-date"></div>
+          <div class="tz-hero-offset">UTC −03:00</div>
+        </div>
+      </div>
+
+      <!-- Date picker row -->
+      <div class="tz-toolbar">
+        <input id="tz-date" type="date" class="text-input" />
+        <button class="btn btn-secondary" onclick="tzSetToday()">Today</button>
+        <span class="spacer"></span>
+        <div class="tz-add-wrap">
+          <input id="tz-search" type="text" class="text-input" placeholder="Add timezone…" autocomplete="off" />
+          <div id="tz-suggestions" class="tz-suggestions"></div>
+        </div>
+      </div>
+
+      <!-- Timeline grid -->
+      <div id="tz-grid" class="tz-grid"></div>
+    </div>
+
+    <!-- ═══ CSR Decoder ═══ -->
+    <div class="tab-panel" id="tab-csrdec">
+      <div class="panel-title">
+        <span class="icon">📋</span> CSR Decoder
+      </div>
+      <div class="io-box">
+        <label>Input (PEM CSR)</label>
+        <textarea id="csrdec-in" placeholder="Paste CSR (-----BEGIN CERTIFICATE REQUEST-----) …" style="height:180px;"></textarea>
+      </div>
+      <div class="err-msg" id="csrdec-err"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="csrDec()">⚡ Decode</button>
+        <span class="spacer"></span>
+        <button class="btn btn-danger" onclick="clearCsrDec()">Clear</button>
+      </div>
+      <div id="csrdec-results" style="display:none;margin-top:16px;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <!-- ═══ Keystore / Truststore Viewer ═══ -->
+    <div class="tab-panel" id="tab-keystore">
+      <div class="panel-title">
+        <span class="icon">🔐</span> Keystore / Truststore Viewer
+      </div>
+      <div class="ks-upload-area">
+        <div class="io-box" style="margin-bottom:0;">
+          <label>Keystore File (JKS, PKCS#12/PFX, or PEM bundle)</label>
+          <input id="ks-file" type="file" class="text-input" accept=".jks,.p12,.pfx,.pem,.crt,.cer,.keystore,.truststore" />
+        </div>
+        <div class="io-box" style="margin-bottom:0;">
+          <label>Password <span style="font-weight:400;color:var(--muted);">(required for PKCS#12, optional for JKS)</span></label>
+          <input id="ks-pass" type="password" class="text-input" placeholder="Keystore password…" />
+        </div>
+      </div>
+      <div class="err-msg" id="ks-err"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="keystoreDecode()">⚡ Decode</button>
+        <span class="spacer"></span>
+        <button class="btn btn-danger" onclick="clearKeystore()">Clear</button>
+      </div>
+      <div id="ks-summary" class="ks-summary" style="display:none;"></div>
+      <div id="ks-results" style="display:none;flex-direction:column;gap:16px;margin-top:8px;"></div>
+    </div>
+
+    <!-- ═══ IP / Subnet Calculatorulator ═══ -->
+    <div class="tab-panel" id="tab-subnet">
+      <div class="panel-title">
+        <span class="icon"><span class="material-symbols-outlined" style="font-size:16px;color:#fff;">lan</span></span> IP / Subnet Calculatorulator
+      </div>
+
+      <div class="subnet-input-row">
+        <div class="subnet-field">
+          <label class="subnet-label">IP Address</label>
+          <input id="subnet-ip" type="text" class="text-input" placeholder="192.168.1.0" />
+        </div>
+        <div class="subnet-field subnet-field-sm">
+          <label class="subnet-label">CIDR / Prefix</label>
+          <div class="subnet-cidr-row">
+            <span class="subnet-slash">/</span>
+            <input id="subnet-cidr" type="number" class="text-input" min="0" max="32" value="24" />
+          </div>
+        </div>
+        <div class="subnet-field">
+          <label class="subnet-label">or Subnet Mask</label>
+          <input id="subnet-mask-in" type="text" class="text-input" placeholder="255.255.255.0" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="subnetCalc()">Calculate</button>
+        <span class="spacer"></span>
+        <button class="btn btn-danger" onclick="subnetClear()">Clear</button>
+      </div>
+      <div class="err-msg" id="subnet-err"></div>
+
+      <div id="subnet-results" style="display:none;">
+        <div class="subnet-results-grid" id="subnet-grid"></div>
+        <div class="subnet-section" id="subnet-binary-section" style="display:none;">
+          <h4 class="subnet-section-title">Binary Breakdown</h4>
+          <div id="subnet-binary" class="subnet-binary"></div>
+        </div>
+        <div class="subnet-section" id="subnet-all-section" style="display:none;">
+          <h4 class="subnet-section-title">All Subnets in this Network Class</h4>
+          <div id="subnet-table-wrap" class="subnet-table-wrap">
+            <table class="subnet-table" id="subnet-table">
+              <thead><tr><th>Subnet</th><th>Host Range</th><th>Broadcast</th></tr></thead>
+              <tbody id="subnet-table-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -22,6 +22,8 @@ Open `index.html` directly in any modern browser. No build step, no dependencies
 | **B64 URL Decode** | Decodes URL-safe Base64 strings |
 | **JWT Decode** | Decodes JWT header and payload (no signature verification) |
 | **SAML Decode** | Decodes SAML tokens — supports both HTTP-Redirect (deflate + Base64) and HTTP-POST (plain Base64) bindings, with formatted XML output |
+| **PEM / Certificate Decoder** | Parses PEM-encoded X.509 certificates showing subject, SANs, issuer, validity, key usage, and fingerprints |
+| **CSR Decoder** | Decodes and displays CSR fields including subject, public key, and requested extensions |
 
 ### Format
 
@@ -29,6 +31,7 @@ Open `index.html` directly in any modern browser. No build step, no dependencies
 |---|---|
 | **JSON Beautify** | Pretty-prints and minifies JSON |
 | **XML Beautify** | Pretty-prints and minifies XML |
+| **YAML Linter / Formatter** | Validates, beautifies, and converts between YAML and JSON with Kubernetes-standard 2-space indentation |
 
 ### Generate
 
@@ -37,6 +40,7 @@ Open `index.html` directly in any modern browser. No build step, no dependencies
 | **Hash** | Generates MD5, SHA-1, SHA-256, and SHA-512 hashes |
 | **Password** | Cryptographically random passwords with configurable length and character sets; includes strength indicator |
 | **UUID** | Generates UUID v4 values (bulk generation up to 100) using `crypto.randomUUID()` |
+| **CSR Generator** | Generates PKCS#10 Certificate Signing Requests with configurable subject fields and key sizes |
 
 ### Utilities
 
@@ -47,6 +51,9 @@ Open `index.html` directly in any modern browser. No build step, no dependencies
 | **Timestamp** | Converts Unix timestamps (seconds/milliseconds) to human-readable dates and vice versa |
 | **HTTP Status** | Searchable reference table of HTTP status codes (1xx–5xx) |
 | **CORS Builder** | Generates `Access-Control-*` response headers from a guided form |
+| **Time Zone Converter** | Converts date/time across multiple time zones with quick-add presets for common regions |
+| **Keystore / Truststore Viewer** | Reads JKS and PKCS#12 keystores entirely in-browser, displaying certificate details and chain info |
+| **IP / Subnet Calculator** | Calculates network address, broadcast, host range, and wildcard mask from IP and CIDR or subnet mask input |
 
 ## Technical Notes
 
