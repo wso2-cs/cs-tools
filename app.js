@@ -895,6 +895,11 @@ const IMG_HISTORY = 12;      // snapshot cap (memory guard)
 
 function imgEl(id) { return document.getElementById(id); }
 
+// The offscreen base canvas is read back frequently (snapshots, pixelate),
+// so hint the browser to keep it in a CPU-readable buffer. Only affects the
+// first getContext call per canvas; later calls return the same context.
+function imgBaseCtx(c) { return c.getContext('2d', { willReadFrequently: true }); }
+
 function imgHumanSize(n) {
   return n < 1024 ? n + ' B'
     : n < 1048576 ? (n / 1024).toFixed(1) + ' KB'
@@ -1007,7 +1012,7 @@ function imgDrawCropOverlay(r) {
 
 /* ── History ── */
 function imgPush() {
-  const snap = img.base.getContext('2d').getImageData(0, 0, img.base.width, img.base.height);
+  const snap = imgBaseCtx(img.base).getImageData(0, 0, img.base.width, img.base.height);
   img.history = img.history.slice(0, img.hi + 1);
   img.history.push(snap);
   if (img.history.length > IMG_HISTORY) img.history.shift();
@@ -1019,7 +1024,7 @@ function imgRestore() {
   const snap = img.history[img.hi];
   img.base.width = snap.width;
   img.base.height = snap.height;
-  img.base.getContext('2d').putImageData(snap, 0, 0);
+  imgBaseCtx(img.base).putImageData(snap, 0, 0);
   imgSyncSize();
   imgRender();
   imgUpdateHistBtns();
@@ -1064,7 +1069,7 @@ function imgLoadImage(im) {
   }
   img.base = document.createElement('canvas');
   img.base.width = w; img.base.height = h;
-  img.base.getContext('2d').drawImage(im, 0, 0, w, h);
+  imgBaseCtx(img.base).drawImage(im, 0, 0, w, h);
 
   img.history = []; img.hi = -1; img.cropRect = null;
   imgEl('img-placeholder').style.display = 'none';
@@ -1105,7 +1110,7 @@ function imgDown(e) {
   if (img.tool === 'text') {
     const t = prompt('Enter label text:');
     if (t) {
-      const ctx = img.base.getContext('2d');
+      const ctx = imgBaseCtx(img.base);
       ctx.fillStyle = img.color;
       ctx.textBaseline = 'top';
       ctx.font = `600 ${Math.max(14, img.stroke * 4)}px Inter, sans-serif`;
@@ -1138,7 +1143,7 @@ function imgUp(e) {
   if (!img.drawing) return;
   img.drawing = false;
   const p = imgPos(e);
-  const ctx = img.base.getContext('2d');
+  const ctx = imgBaseCtx(img.base);
 
   if (img.tool === 'pen') {
     if (img.penPts.length > 1) { imgDrawPen(ctx, img.penPts); imgPush(); }
@@ -1164,7 +1169,7 @@ function imgApplyCrop() {
   const r = img.cropRect;
   const nc = document.createElement('canvas');
   nc.width = Math.round(r.w); nc.height = Math.round(r.h);
-  nc.getContext('2d').drawImage(img.base, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+  imgBaseCtx(nc).drawImage(img.base, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
   img.base = nc;
   img.cropRect = null;
   imgEl('img-cropbar').style.display = 'none';
@@ -1197,7 +1202,7 @@ function imgApplyResize() {
   setError('img-err', '');
   const nc = document.createElement('canvas');
   nc.width = w; nc.height = h;
-  nc.getContext('2d').drawImage(img.base, 0, 0, w, h);
+  imgBaseCtx(nc).drawImage(img.base, 0, 0, w, h);
   img.base = nc;
   imgSyncSize(); imgPush(); imgRender(); imgEstimateSize();
 }
