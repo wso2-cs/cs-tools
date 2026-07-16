@@ -47,12 +47,14 @@ Open `index.html` directly in any modern browser. No build step, no dependencies
 | **Timestamp** | Converts Unix timestamps (seconds/milliseconds) to human-readable dates and vice versa |
 | **HTTP Status** | Searchable reference table of HTTP status codes (1xx–5xx) |
 | **CORS Builder** | Generates `Access-Control-*` response headers from a guided form |
+| **Image Editor** | Redact (solid fill), pixelate, annotate (box/arrow/pen/text), crop, resize and export screenshots (PNG/JPEG/WebP) fully client-side; load via file, drag-drop or clipboard paste; EXIF stripped on export |
 
 ## Technical Notes
 
 - **No external API calls** — all processing happens in the browser
 - **Crypto** — hashing uses the Web Crypto API (`crypto.subtle.digest`); passwords and UUIDs use `crypto.getRandomValues` / `crypto.randomUUID()`
 - **SAML** — decompression uses `DecompressionStream('deflate-raw')` (Chrome 80+, Firefox 113+, Safari 16.4+)
+- **Image Editor** — `<canvas>` + Pointer Events, no libraries; redaction and pixelation are baked into the bitmap (not recoverable overlays); EXIF is dropped because the image is re-encoded through canvas on export; large images auto-downscale to 4000px; clipboard image copy needs `ClipboardItem` (Chromium), Download always works
 - **Theming** — dark mode by default; light mode toggle persisted in `localStorage`
 - **Fonts** — [Inter](https://fonts.google.com/specimen/Inter) (UI) and [Material Symbols Outlined](https://fonts.google.com/icons) (icons)
 

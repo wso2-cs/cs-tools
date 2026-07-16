@@ -72,6 +72,7 @@
         <button data-tab="timestamp">Timestamp</button>
         <button data-tab="httpstatus">HTTP Status</button>
         <button data-tab="cors">CORS Builder</button>
+        <button data-tab="img">Image Editor</button>
       </div>
     </div>
   </nav>
@@ -624,6 +625,109 @@
           <button class="btn btn-secondary" onclick="copyText('cors-result')">Copy Headers</button>
         </div>
       </div>
+    </div>
+
+    <!-- ═══ Image Redactor ═══ -->
+    <div class="tab-panel" id="tab-img">
+      <div class="panel-title">
+        <span class="icon">🖼</span> Image Editor
+      </div>
+
+      <p class="img-blurb">
+        Redact, annotate, crop and compress screenshots entirely in your browser.
+        Nothing is uploaded, and image metadata (EXIF) is stripped on export.
+      </p>
+
+      <div class="err-msg" id="img-err"></div>
+
+      <!-- Toolbar: appears only once an image is loaded -->
+      <div class="img-toolbar" id="img-toolbar" style="display:none;">
+        <div class="img-tool-group" role="group" aria-label="Tools">
+          <button class="img-tool active" data-tool="redact"   onclick="imgSetTool('redact')"   title="Redact (solid black)">Redact</button>
+          <button class="img-tool"        data-tool="pixelate" onclick="imgSetTool('pixelate')" title="Pixelate / blur region">Pixelate</button>
+          <button class="img-tool"        data-tool="rect"     onclick="imgSetTool('rect')"     title="Rectangle outline">Box</button>
+          <button class="img-tool"        data-tool="arrow"    onclick="imgSetTool('arrow')"    title="Arrow">Arrow</button>
+          <button class="img-tool"        data-tool="pen"      onclick="imgSetTool('pen')"      title="Freehand pen">Pen</button>
+          <button class="img-tool"        data-tool="text"     onclick="imgSetTool('text')"     title="Text label">Text</button>
+          <button class="img-tool"        data-tool="crop"     onclick="imgSetTool('crop')"     title="Crop">Crop</button>
+        </div>
+
+        <div class="img-opt-group">
+          <label class="img-opt" id="img-color-wrap">
+            <span>Color</span>
+            <input type="color" id="img-color" value="#ff3b30">
+          </label>
+          <label class="img-opt" id="img-stroke-wrap">
+            <span>Stroke</span>
+            <input type="range" id="img-stroke" min="1" max="40" value="6">
+            <span class="img-opt-val" id="img-stroke-val">6</span>
+          </label>
+          <label class="img-opt" id="img-pixel-wrap" style="display:none;">
+            <span>Block</span>
+            <input type="range" id="img-pixel" min="4" max="48" value="14">
+            <span class="img-opt-val" id="img-pixel-val">14</span>
+          </label>
+        </div>
+
+        <span class="spacer"></span>
+
+        <div class="img-tool-group">
+          <button class="img-tool" onclick="imgUndo()" id="img-undo" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
+          <button class="img-tool" onclick="imgRedo()" id="img-redo" title="Redo (Ctrl+Y)" disabled>↷ Redo</button>
+        </div>
+      </div>
+
+      <!-- Action bar: resize + export, kept above the canvas so it stays reachable with tall images -->
+      <div class="img-actionbar" id="img-actionbar" style="display:none;">
+        <div class="img-action-block">
+          <label class="img-opt"><span>W</span><input type="number" id="img-w" class="text-input img-dim" min="1"></label>
+          <label class="img-opt"><span>H</span><input type="number" id="img-h" class="text-input img-dim" min="1"></label>
+          <label class="img-opt img-lock"><input type="checkbox" id="img-aspect" checked> Lock ratio</label>
+          <button class="btn btn-secondary" onclick="imgApplyResize()">Resize</button>
+        </div>
+
+        <span class="spacer"></span>
+
+        <div class="img-action-block">
+          <label class="img-opt">
+            <span>Format</span>
+            <select id="img-format" class="img-select" onchange="imgFormatChange()">
+              <option value="image/png">PNG</option>
+              <option value="image/jpeg">JPEG</option>
+              <option value="image/webp">WebP</option>
+            </select>
+          </label>
+          <label class="img-opt" id="img-quality-wrap" style="display:none;">
+            <span>Quality</span>
+            <input type="range" id="img-quality" min="10" max="100" value="90" oninput="imgEstimateSize()">
+            <span class="img-opt-val" id="img-quality-val">90</span>
+          </label>
+          <span class="img-size" id="img-size"></span>
+          <button class="btn btn-primary" onclick="imgExport()">⬇ Download</button>
+          <button class="btn btn-secondary" onclick="imgCopy()">Copy</button>
+          <button class="btn btn-danger" onclick="imgReset()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Crop apply bar: only visible with a pending crop selection -->
+      <div class="img-cropbar" id="img-cropbar" style="display:none;">
+        <span class="img-crop-note">Selection ready.</span>
+        <button class="btn btn-primary" onclick="imgApplyCrop()">✂ Apply Crop</button>
+        <button class="btn btn-secondary" onclick="imgCancelCrop()">Cancel</button>
+      </div>
+
+      <!-- Stage: placeholder before load, canvas after -->
+      <div class="img-stage" id="img-stage">
+        <div class="img-placeholder" id="img-placeholder">
+          <span class="material-symbols-outlined img-drop-icon">add_photo_alternate</span>
+          <div class="img-drop-title">Drop an image here, paste from clipboard, or</div>
+          <button class="btn btn-primary" onclick="document.getElementById('img-file').click()">Choose file</button>
+          <div class="img-drop-hint">Ctrl/Cmd+V pastes a screenshot directly</div>
+        </div>
+        <canvas id="img-canvas" style="display:none;"></canvas>
+      </div>
+
+      <input type="file" id="img-file" accept="image/*" hidden onchange="imgFileChosen(event)">
     </div>
 
   </div><!-- .content -->
