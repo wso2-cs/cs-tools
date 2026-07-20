@@ -22,6 +22,7 @@ Open `index.html` directly in any modern browser. No build step, no dependencies
 | **B64 URL Decode** | Decodes URL-safe Base64 strings |
 | **JWT Decode** | Decodes JWT header and payload (no signature verification) |
 | **SAML Decode** | Decodes SAML tokens — supports both HTTP-Redirect (deflate + Base64) and HTTP-POST (plain Base64) bindings, with formatted XML output |
+| **Certificate Decode** | Parses public X.509 certificates (PEM or raw Base64 DER) — subject, issuer, validity, serial, signature/public key algorithm, SHA-1/SHA-256 fingerprints, SAN, key usage, extended key usage, basic constraints |
 
 ### Format
 
@@ -54,6 +55,7 @@ Open `index.html` directly in any modern browser. No build step, no dependencies
 - **No external API calls** — all processing happens in the browser
 - **Crypto** — hashing uses the Web Crypto API (`crypto.subtle.digest`); passwords and UUIDs use `crypto.getRandomValues` / `crypto.randomUUID()`
 - **SAML** — decompression uses `DecompressionStream('deflate-raw')` (Chrome 80+, Firefox 113+, Safari 16.4+)
+- **Certificate Decode** — hand-rolled minimal ASN.1/DER reader (no libraries); parses only public certificate fields, never handles or accepts private key material; fingerprints via `crypto.subtle.digest`
 - **Image Editor** — `<canvas>` + Pointer Events, no libraries; redaction and pixelation are baked into the bitmap (not recoverable overlays); EXIF is dropped because the image is re-encoded through canvas on export; large images auto-downscale to 4000px; clipboard image copy needs `ClipboardItem` (Chromium), Download always works
 - **Theming** — dark mode by default; light mode toggle persisted in `localStorage`
 - **Fonts** — [Inter](https://fonts.google.com/specimen/Inter) (UI) and [Material Symbols Outlined](https://fonts.google.com/icons) (icons)

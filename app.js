@@ -1,13 +1,28 @@
 /* ── Tab navigation ── */
+function activateTab(tabName, updateHash) {
+  const btn = document.querySelector(`nav button[data-tab="${tabName}"]`);
+  const panel = document.getElementById('tab-' + tabName);
+  if (!btn || !panel) return false;
+
+  document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  panel.classList.add('active');
+  btn.closest('.nav-category')?.classList.add('open');
+
+  if (updateHash) history.replaceState(null, '', '#' + tabName);
+  return true;
+}
+
 document.querySelectorAll('nav button[data-tab]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    btn.closest('.nav-category')?.classList.add('open');
-  });
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab, true));
 });
+
+window.addEventListener('hashchange', () => {
+  activateTab(location.hash.slice(1), false);
+});
+
+if (location.hash) activateTab(location.hash.slice(1), false);
 
 function toggleCategory(headerBtn) {
   headerBtn.closest('.nav-category').classList.toggle('open');
@@ -447,6 +462,452 @@ function copyVal(text) {
   navigator.clipboard.writeText(text).then(() => showToast('Copied!'));
 }
 
+/* ── Certificate Decode (X.509 DER/PEM) ── */
+const CERT_OID_NAMES = {
+  '2.5.4.3': 'CN', '2.5.4.6': 'C', '2.5.4.7': 'L', '2.5.4.8': 'ST',
+  '2.5.4.10': 'O', '2.5.4.11': 'OU', '2.5.4.5': 'serialNumber',
+  '2.5.4.9': 'streetAddress', '2.5.4.17': 'postalCode',
+  '1.2.840.113549.1.9.1': 'emailAddress',
+};
+const CERT_OID_SIG_ALGS = {
+  '1.2.840.113549.1.1.4': 'MD5 with RSA',
+  '1.2.840.113549.1.1.5': 'SHA1 with RSA',
+  '1.2.840.113549.1.1.11': 'SHA256 with RSA',
+  '1.2.840.113549.1.1.12': 'SHA384 with RSA',
+  '1.2.840.113549.1.1.13': 'SHA512 with RSA',
+  '1.2.840.113549.1.1.10': 'RSASSA-PSS',
+  '1.2.840.10045.4.1': 'ECDSA with SHA1',
+  '1.2.840.10045.4.3.2': 'ECDSA with SHA256',
+  '1.2.840.10045.4.3.3': 'ECDSA with SHA384',
+  '1.2.840.10045.4.3.4': 'ECDSA with SHA512',
+};
+const CERT_OID_PUBKEY_ALGS = {
+  '1.2.840.113549.1.1.1': 'RSA',
+  '1.2.840.10045.2.1': 'EC',
+  '1.2.840.10040.4.1': 'DSA',
+};
+const CERT_OID_CURVES = {
+  '1.2.840.10045.3.1.7': 'P-256 (prime256v1)',
+  '1.3.132.0.34': 'P-384 (secp384r1)',
+  '1.3.132.0.35': 'P-521 (secp521r1)',
+};
+const CERT_OID_EXT_NAMES = {
+  '2.5.29.14': 'Subject Key Identifier',
+  '2.5.29.15': 'Key Usage',
+  '2.5.29.17': 'Subject Alternative Name',
+  '2.5.29.19': 'Basic Constraints',
+  '2.5.29.31': 'CRL Distribution Points',
+  '2.5.29.35': 'Authority Key Identifier',
+  '2.5.29.37': 'Extended Key Usage',
+  '1.3.6.1.5.5.7.1.1': 'Authority Information Access',
+};
+const CERT_EKU_NAMES = {
+  '1.3.6.1.5.5.7.3.1': 'TLS Server Authentication',
+  '1.3.6.1.5.5.7.3.2': 'TLS Client Authentication',
+  '1.3.6.1.5.5.7.3.3': 'Code Signing',
+  '1.3.6.1.5.5.7.3.4': 'Email Protection',
+  '1.3.6.1.5.5.7.3.8': 'Time Stamping',
+  '1.3.6.1.5.5.7.3.9': 'OCSP Signing',
+};
+
+class DerReader {
+  constructor(bytes) { this.b = bytes; }
+  readTLV(pos) {
+    const b = this.b;
+    if (pos >= b.length) throw new Error('Unexpected end of data');
+    const tag = b[pos];
+    let len = b[pos + 1];
+    let lenBytes = 1;
+    if (len & 0x80) {
+      const n = len & 0x7f;
+      len = 0;
+      for (let i = 0; i < n; i++) len = (len << 8) | b[pos + 2 + i];
+      lenBytes = 1 + n;
+    }
+    const contentStart = pos + 1 + lenBytes;
+    const contentEnd = contentStart + len;
+    if (contentEnd > b.length) throw new Error('Truncated DER data');
+    return { tag, contentStart, contentEnd, end: contentEnd };
+  }
+  content(tlv) { return this.b.slice(tlv.contentStart, tlv.contentEnd); }
+}
+
+function certParseOid(bytes) {
+  const parts = [];
+  let val = 0;
+  for (let i = 0; i < bytes.length; i++) {
+    val = val * 128 + (bytes[i] & 0x7f);
+    if (!(bytes[i] & 0x80)) { parts.push(val); val = 0; }
+  }
+  const first = Math.floor(parts[0] / 40);
+  const second = parts[0] % 40;
+  return [first, second, ...parts.slice(1)].join('.');
+}
+
+function certBytesToInt(bytes) {
+  let n = 0;
+  for (const b of bytes) n = (n << 8) | b;
+  return n;
+}
+
+function certParseTime(tag, bytes) {
+  const s = new TextDecoder().decode(bytes).replace('Z', '');
+  let y, mo, d, h, mi, se = '00';
+  if (tag === 0x17) { // UTCTime
+    y = parseInt(s.slice(0, 2), 10);
+    y = y < 50 ? 2000 + y : 1900 + y;
+    mo = s.slice(2, 4); d = s.slice(4, 6); h = s.slice(6, 8); mi = s.slice(8, 10);
+    if (s.length >= 12) se = s.slice(10, 12);
+  } else { // GeneralizedTime
+    y = parseInt(s.slice(0, 4), 10);
+    mo = s.slice(4, 6); d = s.slice(6, 8); h = s.slice(8, 10); mi = s.slice(10, 12);
+    if (s.length >= 14) se = s.slice(12, 14);
+  }
+  return new Date(Date.UTC(y, parseInt(mo, 10) - 1, parseInt(d, 10), parseInt(h, 10), parseInt(mi, 10), parseInt(se, 10)));
+}
+
+function certParseName(r, tlv) {
+  const parts = [];
+  let pos = tlv.contentStart;
+  while (pos < tlv.contentEnd) {
+    const rdnSet = r.readTLV(pos); // SET OF AttributeTypeAndValue
+    let p2 = rdnSet.contentStart;
+    while (p2 < rdnSet.contentEnd) {
+      const atv = r.readTLV(p2); // SEQUENCE
+      let p3 = atv.contentStart;
+      const oidTlv = r.readTLV(p3);
+      const oid = certParseOid(r.content(oidTlv));
+      p3 = oidTlv.end;
+      const valTlv = r.readTLV(p3);
+      const value = new TextDecoder('utf-8').decode(r.content(valTlv));
+      parts.push(`${CERT_OID_NAMES[oid] || oid}=${value}`);
+      p2 = atv.end;
+    }
+    pos = rdnSet.end;
+  }
+  return parts.join(', ');
+}
+
+function certSerialHex(bytes) {
+  let i = 0;
+  while (i < bytes.length - 1 && bytes[i] === 0) i++;
+  return Array.from(bytes.slice(i)).map(b => b.toString(16).padStart(2, '0')).join(':');
+}
+
+function certParseSAN(bytes) {
+  const r = new DerReader(bytes);
+  const seq = r.readTLV(0);
+  const names = [];
+  let p = seq.contentStart;
+  while (p < seq.contentEnd) {
+    const t = r.readTLV(p);
+    const ctx = t.tag & 0x1f;
+    const val = r.content(t);
+    if (ctx === 2) names.push('DNS:' + new TextDecoder().decode(val));
+    else if (ctx === 1) names.push('email:' + new TextDecoder().decode(val));
+    else if (ctx === 6) names.push('URI:' + new TextDecoder().decode(val));
+    else if (ctx === 7) names.push('IP:' + (val.length === 4 ? Array.from(val).join('.') : Array.from(val).map(b => b.toString(16).padStart(2, '0')).join(':')));
+    else if (ctx === 4) names.push('DirName: (present)');
+    else names.push(`otherName (tag 0x${t.tag.toString(16)})`);
+    p = t.end;
+  }
+  return names;
+}
+
+function certParseKeyUsage(bytes) {
+  const r = new DerReader(bytes);
+  const bs = r.readTLV(0); // BIT STRING
+  const content = r.content(bs);
+  const byte0 = content[1] || 0;
+  const byte1 = content[2] || 0;
+  const names = ['Digital Signature', 'Non Repudiation', 'Key Encipherment', 'Data Encipherment', 'Key Agreement', 'Certificate Sign', 'CRL Sign', 'Encipher Only', 'Decipher Only'];
+  const bits = [];
+  for (let i = 0; i < 8; i++) if (byte0 & (0x80 >> i)) bits.push(names[i]);
+  if (byte1 & 0x80) bits.push(names[8]);
+  return bits;
+}
+
+function certParseBasicConstraints(bytes) {
+  const r = new DerReader(bytes);
+  const seq = r.readTLV(0);
+  let p = seq.contentStart;
+  let isCA = false, pathLen = null;
+  if (p < seq.contentEnd) {
+    let t = r.readTLV(p);
+    if (t.tag === 0x01) { isCA = r.content(t)[0] !== 0; p = t.end; }
+    if (p < seq.contentEnd) { t = r.readTLV(p); if (t.tag === 0x02) pathLen = certBytesToInt(r.content(t)); }
+  }
+  return { isCA, pathLen };
+}
+
+function certParseExtKeyUsage(bytes) {
+  const r = new DerReader(bytes);
+  const seq = r.readTLV(0);
+  let p = seq.contentStart;
+  const out = [];
+  while (p < seq.contentEnd) {
+    const t = r.readTLV(p);
+    const oid = certParseOid(r.content(t));
+    out.push(CERT_EKU_NAMES[oid] || oid);
+    p = t.end;
+  }
+  return out;
+}
+
+function certPemToBytes(input) {
+  const trimmed = input.trim();
+  const match = trimmed.match(/-----BEGIN [^-]+-----([\s\S]+?)-----END [^-]+-----/);
+  const b64 = (match ? match[1] : trimmed).replace(/\s+/g, '');
+  const raw = atob(b64);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes;
+}
+
+function certParseCertificate(bytes) {
+  const r = new DerReader(bytes);
+  const certTlv = r.readTLV(0); // Certificate SEQUENCE
+  const tbsTlv = r.readTLV(certTlv.contentStart); // tbsCertificate SEQUENCE
+  const sigAlgTlv = r.readTLV(tbsTlv.end); // Certificate.signatureAlgorithm
+  const sigAlgOidTlv = r.readTLV(sigAlgTlv.contentStart);
+  const sigAlgOid = certParseOid(r.content(sigAlgOidTlv));
+
+  let p = tbsTlv.contentStart;
+  const end = tbsTlv.contentEnd;
+
+  let version = 1;
+  let t = r.readTLV(p);
+  if (t.tag === 0xa0) { // [0] EXPLICIT version
+    const inner = r.readTLV(t.contentStart);
+    version = certBytesToInt(r.content(inner)) + 1;
+    p = t.end;
+    t = r.readTLV(p);
+  }
+
+  const serialBytes = r.content(t); // serialNumber INTEGER
+  p = t.end;
+
+  t = r.readTLV(p); p = t.end; // tbs signature AlgorithmIdentifier (redundant copy)
+
+  t = r.readTLV(p); // issuer Name
+  const issuer = certParseName(r, t);
+  p = t.end;
+
+  t = r.readTLV(p); // validity SEQUENCE
+  let vp = t.contentStart;
+  const nbTlv = r.readTLV(vp);
+  const notBefore = certParseTime(nbTlv.tag, r.content(nbTlv));
+  vp = nbTlv.end;
+  const naTlv = r.readTLV(vp);
+  const notAfter = certParseTime(naTlv.tag, r.content(naTlv));
+  p = t.end;
+
+  t = r.readTLV(p); // subject Name
+  const subject = certParseName(r, t);
+  p = t.end;
+
+  t = r.readTLV(p); // subjectPublicKeyInfo SEQUENCE
+  let sp = t.contentStart;
+  const algTlv = r.readTLV(sp);
+  let ap = algTlv.contentStart;
+  const pubKeyOidTlv = r.readTLV(ap);
+  const pubKeyOid = certParseOid(r.content(pubKeyOidTlv));
+  ap = pubKeyOidTlv.end;
+  let curveName = null;
+  if (pubKeyOid === '1.2.840.10045.2.1' && ap < algTlv.contentEnd) {
+    const paramTlv = r.readTLV(ap);
+    if (paramTlv.tag === 0x06) {
+      const curveOid = certParseOid(r.content(paramTlv));
+      curveName = CERT_OID_CURVES[curveOid] || curveOid;
+    }
+  }
+  sp = algTlv.end;
+  const pubKeyBitTlv = r.readTLV(sp);
+  const pubKeyBits = r.content(pubKeyBitTlv); // [0] = unused-bits count
+  let keySizeBits = null;
+  if (pubKeyOid === '1.2.840.113549.1.1.1') {
+    const rsaKey = new DerReader(pubKeyBits.slice(1));
+    const rsaSeq = rsaKey.readTLV(0);
+    const modTlv = rsaKey.readTLV(rsaSeq.contentStart);
+    let modBytes = rsaKey.content(modTlv);
+    let mi = 0; while (mi < modBytes.length - 1 && modBytes[mi] === 0) mi++;
+    keySizeBits = (modBytes.length - mi) * 8;
+  } else if (pubKeyOid === '1.2.840.10045.2.1') {
+    const point = pubKeyBits.slice(1);
+    if (point.length > 1 && point[0] === 0x04) keySizeBits = ((point.length - 1) / 2) * 8;
+  }
+  p = t.end;
+
+  const extensions = [];
+  while (p < end) {
+    t = r.readTLV(p);
+    if (t.tag === 0xa3) { // [3] EXPLICIT extensions
+      const seqTlv = r.readTLV(t.contentStart);
+      let ep = seqTlv.contentStart;
+      while (ep < seqTlv.contentEnd) {
+        const extTlv = r.readTLV(ep);
+        let xp = extTlv.contentStart;
+        const oidTlv = r.readTLV(xp);
+        const extOid = certParseOid(r.content(oidTlv));
+        xp = oidTlv.end;
+        let critical = false;
+        let valTlv = r.readTLV(xp);
+        if (valTlv.tag === 0x01) { // BOOLEAN critical
+          critical = r.content(valTlv)[0] !== 0;
+          xp = valTlv.end;
+          valTlv = r.readTLV(xp);
+        }
+        extensions.push({ oid: extOid, critical, value: r.content(valTlv) });
+        ep = extTlv.end;
+      }
+    }
+    p = t.end;
+  }
+
+  return { version, serialBytes, issuer, subject, notBefore, notAfter, sigAlgOid, pubKeyOid, curveName, keySizeBits, extensions };
+}
+
+async function certDecode() {
+  const input = document.getElementById('cert-in');
+  const statusEl = document.getElementById('cert-status');
+  const outputBox = document.getElementById('cert-output-box');
+  const pre = document.getElementById('cert-pre');
+  setError('cert-err', '');
+  input.classList.remove('error');
+  statusEl.style.display = 'none';
+  outputBox.style.display = 'none';
+
+  const val = input.value.trim();
+  if (!val) { setError('cert-err', 'Please paste a PEM or Base64 DER certificate.'); input.classList.add('error'); return; }
+
+  let bytes;
+  try {
+    bytes = certPemToBytes(val);
+  } catch (e) {
+    setError('cert-err', 'Invalid Base64 encoding.'); input.classList.add('error'); return;
+  }
+
+  let cert;
+  try {
+    cert = certParseCertificate(bytes);
+  } catch (e) {
+    setError('cert-err', 'Failed to parse certificate: ' + e.message); input.classList.add('error'); return;
+  }
+
+  const toHexColon = buf => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join(':');
+  const [fpSha1, fpSha256] = await Promise.all([
+    crypto.subtle.digest('SHA-1', bytes),
+    crypto.subtle.digest('SHA-256', bytes),
+  ]);
+
+  const now = new Date();
+  const expired = now > cert.notAfter;
+  const notYetValid = now < cert.notBefore;
+  statusEl.className = 'jwt-status ' + (expired || notYetValid ? 'expired' : 'valid');
+  statusEl.innerHTML = expired
+    ? `✗ Certificate expired on ${cert.notAfter.toLocaleString()}`
+    : notYetValid
+      ? `✗ Certificate not yet valid (starts ${cert.notBefore.toLocaleString()})`
+      : `✓ Certificate valid until ${cert.notAfter.toLocaleString()}`;
+  statusEl.style.display = 'flex';
+
+  const lines = [];
+  lines.push(`Version: v${cert.version}`);
+  lines.push(`Serial Number: ${certSerialHex(cert.serialBytes)}`);
+  lines.push('');
+  lines.push(`Subject: ${cert.subject}`);
+  lines.push(`Issuer: ${cert.issuer}`);
+  lines.push('');
+  lines.push(`Valid From: ${cert.notBefore.toUTCString()}`);
+  lines.push(`Valid Until: ${cert.notAfter.toUTCString()}`);
+  lines.push('');
+  lines.push(`Signature Algorithm: ${CERT_OID_SIG_ALGS[cert.sigAlgOid] || cert.sigAlgOid}`);
+  lines.push(`Public Key Algorithm: ${CERT_OID_PUBKEY_ALGS[cert.pubKeyOid] || cert.pubKeyOid}${cert.curveName ? ' (' + cert.curveName + ')' : ''}`);
+  if (cert.keySizeBits) lines.push(`Public Key Size: ${cert.keySizeBits} bits`);
+  lines.push('');
+  lines.push(`SHA-256 Fingerprint: ${toHexColon(fpSha256)}`);
+  lines.push(`SHA-1 Fingerprint:   ${toHexColon(fpSha1)}`);
+
+  if (cert.extensions.length) {
+    lines.push('');
+    lines.push('Extensions:');
+    for (const ext of cert.extensions) {
+      const name = CERT_OID_EXT_NAMES[ext.oid] || ext.oid;
+      const crit = ext.critical ? ' (critical)' : '';
+      try {
+        if (ext.oid === '2.5.29.17') {
+          lines.push(`  ${name}${crit}:`);
+          for (const n of certParseSAN(ext.value)) lines.push(`    ${n}`);
+        } else if (ext.oid === '2.5.29.15') {
+          lines.push(`  ${name}${crit}: ${certParseKeyUsage(ext.value).join(', ')}`);
+        } else if (ext.oid === '2.5.29.37') {
+          lines.push(`  ${name}${crit}: ${certParseExtKeyUsage(ext.value).join(', ')}`);
+        } else if (ext.oid === '2.5.29.19') {
+          const bc = certParseBasicConstraints(ext.value);
+          lines.push(`  ${name}${crit}: CA=${bc.isCA}${bc.pathLen !== null ? ', pathLenConstraint=' + bc.pathLen : ''}`);
+        } else {
+          lines.push(`  ${name}${crit}: (${ext.value.length} bytes)`);
+        }
+      } catch (e) {
+        lines.push(`  ${name}${crit}: (unable to parse)`);
+      }
+    }
+  }
+
+  pre.textContent = lines.join('\n');
+  outputBox.style.display = 'block';
+}
+
+function certBytesToBase64(bytes) {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+
+function certBytesToPem(bytes) {
+  const b64 = certBytesToBase64(bytes);
+  const lines = b64.match(/.{1,64}/g) || [];
+  return '-----BEGIN CERTIFICATE-----\n' + lines.join('\n') + '\n-----END CERTIFICATE-----';
+}
+
+async function certLoadFile(file) {
+  if (!file) return;
+  setError('cert-err', '');
+  document.getElementById('cert-in').classList.remove('error');
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const looksLikePem = new TextDecoder('ascii', { fatal: false }).decode(bytes.slice(0, 32)).includes('-----BEGIN');
+    document.getElementById('cert-in').value = looksLikePem ? new TextDecoder().decode(bytes) : certBytesToPem(bytes);
+    certDecode();
+  } catch (e) {
+    setError('cert-err', 'Failed to read file: ' + e.message);
+    document.getElementById('cert-in').classList.add('error');
+  }
+}
+
+function certFileChosen(event) {
+  certLoadFile(event.target.files[0]);
+  event.target.value = '';
+}
+
+function certFileDropped(event) {
+  event.preventDefault();
+  certLoadFile(event.dataTransfer.files[0]);
+}
+
+function certClearOutput() {
+  document.getElementById('cert-in').classList.remove('error');
+  setError('cert-err', '');
+  document.getElementById('cert-status').style.display = 'none';
+  document.getElementById('cert-output-box').style.display = 'none';
+  document.getElementById('cert-pre').textContent = '';
+}
+
+function clearCert() {
+  document.getElementById('cert-in').value = '';
+  certClearOutput();
+}
+
 /* ── Timestamp Convert ── */
 function tsConvert() {
   const input = document.getElementById('ts-in');
@@ -867,6 +1328,7 @@ document.getElementById('b64urlenc-in').addEventListener('input', b64urlEncode);
 document.getElementById('b64urldec-in').addEventListener('input', b64urlDecode);
 document.getElementById('regex-pattern').addEventListener('input', regexTest);
 document.getElementById('regex-test').addEventListener('input', regexTest);
+document.getElementById('cert-in').addEventListener('input', certClearOutput);
 // Init HTTP table on load
 renderHttpTable('');
 
