@@ -369,6 +369,18 @@ button.btn-danger:hover { background: var(--danger-bg-hover); }
 .jwt-status.expired { background: #2b1212; border-color: #4a2020; color: var(--danger); }
 .jwt-status.no-exp  { background: var(--surface2); border-color: var(--border); color: var(--muted); }
 
+/* ── Certificate Decode ── */
+.cert-pre {
+  padding: 4px 2px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text);
+  min-height: 80px;
+}
+
 /* ── Toast ── */
 #toast {
   position: fixed;

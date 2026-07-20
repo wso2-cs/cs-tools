@@ -38,6 +38,7 @@
         <button data-tab="b64urldec">B64 URL Decode</button>
         <button data-tab="jwt">JWT Decode</button>
         <button data-tab="saml">SAML Decode</button>
+        <button data-tab="cert">Certificate Decode</button>
       </div>
     </div>
 
@@ -351,6 +352,37 @@
         <button class="btn btn-secondary" onclick="copyText('saml-out')">Copy Output</button>
         <span class="spacer"></span>
         <button class="btn btn-danger" onclick="clearIO('saml-in','saml-out','saml-err')">Clear</button>
+      </div>
+    </div>
+
+    <!-- ═══ Certificate Decode ═══ -->
+    <div class="tab-panel" id="tab-cert">
+      <div class="panel-title">
+        <span class="icon">🔏</span> Certificate Decode
+      </div>
+      <p class="img-blurb">
+        Parses a public X.509 certificate (PEM, raw Base64 DER, or a binary .cer/.crt/.der file) entirely in your browser — no private key material required or accepted.
+        If multiple certificates are pasted, only the first is decoded.
+      </p>
+      <div class="io-box" id="cert-drop-zone" ondragover="event.preventDefault()" ondrop="certFileDropped(event)">
+        <label>Certificate (PEM, raw Base64 DER, or drop a .cer/.crt/.der file)</label>
+        <textarea id="cert-in" style="height:140px;" placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----&#10;&#10;…or drag a .cer/.crt/.der file here"></textarea>
+      </div>
+      <div class="err-msg" id="cert-err"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="certDecode()">⚡ Decode</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('cert-file').click()">Upload File</button>
+        <button class="btn btn-secondary" onclick="copyText('cert-pre', true)">Copy Output</button>
+        <span class="spacer"></span>
+        <button class="btn btn-danger" onclick="clearCert()">Clear</button>
+      </div>
+      <input type="file" id="cert-file" accept=".pem,.crt,.cer,.der,.txt" hidden onchange="certFileChosen(event)">
+
+      <div id="cert-status" style="display:none"></div>
+
+      <div class="io-box" id="cert-output-box" style="display:none;margin-top:16px;">
+        <label>Certificate Details</label>
+        <pre id="cert-pre" class="cert-pre"></pre>
       </div>
     </div>
 
