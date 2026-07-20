@@ -1,13 +1,28 @@
 /* ── Tab navigation ── */
+function activateTab(tabName, updateHash) {
+  const btn = document.querySelector(`nav button[data-tab="${tabName}"]`);
+  const panel = document.getElementById('tab-' + tabName);
+  if (!btn || !panel) return false;
+
+  document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  panel.classList.add('active');
+  btn.closest('.nav-category')?.classList.add('open');
+
+  if (updateHash) history.replaceState(null, '', '#' + tabName);
+  return true;
+}
+
 document.querySelectorAll('nav button[data-tab]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('nav button[data-tab]').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    btn.closest('.nav-category')?.classList.add('open');
-  });
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab, true));
 });
+
+window.addEventListener('hashchange', () => {
+  activateTab(location.hash.slice(1), false);
+});
+
+if (location.hash) activateTab(location.hash.slice(1), false);
 
 function toggleCategory(headerBtn) {
   headerBtn.closest('.nav-category').classList.toggle('open');
